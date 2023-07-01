@@ -8,10 +8,9 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 def main():
+    #boiler plate
     SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-
     SPREADSHEET_ID = "1A9FnmWrgeNvR9zpThAdRLiBzq9XlxWuVupCSDSDtbLo"
-
     credentials = None
     if os.path.exists("token.json"):
         credentials = Credentials.from_authorized_user_file("token.json", SCOPES)
@@ -28,16 +27,18 @@ def main():
         service = build("sheets", "v4", credentials=credentials)
         sheets = service.spreadsheets()
         """
-        step 1: get dictionary with all top 3 amounts and names 
-        step 2: sort dictionary
-        step 3: add to top 3 column
+        step 1: get dictionary with all top 3 amounts and names/ partly, nonetype case still needs managing but n/a will be placeholder. also id like to figure out a way to batch get every name
+        step 2: sort dictionary/ finished
+        step 3: add to top 3 column/ finished
+            3.1: update all of top 3 at the same time
+            3.2: update the border formatting to correspond with updated placements
         """
         #creates dictionary and searches for names to find players and their amounts of t3
         place = {}
         row = 8
         value = str(sheets.values().get(spreadsheetId=SPREADSHEET_ID, range=f"Races!K{row}").execute().get("values")[0][0])
 
-        while(row != 14):
+        while(value != "no data"):
             if value == "N/A":
                 row += 2
                 value = str(sheets.values().get(spreadsheetId=SPREADSHEET_ID, range=f"Races!K{row}").execute().get("values")[0][0])
@@ -51,12 +52,17 @@ def main():
             row += 2
             value = str(sheets.values().get(spreadsheetId=SPREADSHEET_ID, range=f"Races!K{row}").execute().get("values")[0][0])
 
-        print(place)
-        sorted_place = sorted(place.items(),key=lambda x:x[1])
-        print(sorted_place)
+        #sorting dictionary
+        sorted_place = dict(sorted(sorted(place.items(),key=lambda x:x[1])))
 
-
-
+        #add sorted dict to top3 sheet
+        row = 7
+        for x,y in sorted_place.items():
+            sheets.values().update(spreadsheetId=SPREADSHEET_ID, range=f"Top 3!B{row}",
+                                   valueInputOption="USER_ENTERED", body={"values": [[x]]}).execute()
+            sheets.values().update(spreadsheetId=SPREADSHEET_ID, range=f"Top 3!D{row}",
+                                   valueInputOption="USER_ENTERED", body={"values": [[y]]}).execute()
+            row += 1
 
     except HttpError as error:
         print(error)
@@ -69,13 +75,7 @@ def numberEdit(startingNum, startingRow, endingRow):
                                body={"values": [[f"{count}"]]}).execute()
         count += 1
 """
-
-"""
-this will sort the top 3 placement columns based on amount
-i should have this automate every 24 hrs or something but that would require leaving pc on n shit. idk though
-also should attempt to link races and top 3 pages, using the races sheet as information input 
-THESE DONT WORK AS FUNCTIONS im stupid
-"""
+#i should have this automate every 24 hrs or something but that would require leaving pc on n shit. idk though
 
 if __name__ == "__main__":
     main()
