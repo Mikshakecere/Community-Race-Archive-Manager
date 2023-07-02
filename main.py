@@ -84,15 +84,11 @@ def main():
         for d in places:
             row = 7
             for k in places[d].keys():
-                print(colsK[col])
-                print(k)
                 sheets.values().update(spreadsheetId=SPREADSHEET_ID, range=f"Top 3!{colsK[col]}{row}",
                                        valueInputOption="USER_ENTERED", body={"values": [[k]]}).execute()
                 row += 1
             row = 7
             for v in places[d].values():
-                print(colsV[col])
-                print(v)
                 sheets.values().update(spreadsheetId=SPREADSHEET_ID, range=f"Top 3!{colsV[col]}{row}",
                                        valueInputOption="USER_ENTERED", body={"values": [[v]]}).execute()
                 row += 1
