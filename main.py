@@ -27,42 +27,76 @@ def main():
         service = build("sheets", "v4", credentials=credentials)
         sheets = service.spreadsheets()
         """
-        step 1: get dictionary with all top 3 amounts and names/ partly, nonetype case still needs managing but n/a will be placeholder. also id like to figure out a way to batch get every name
+        step 1: get dictionary with all top 3 amounts and names/ partly, nonetype case still needs managing but n/a will be placeFholder. also id like to figure out a way to batch get every name
         step 2: sort dictionary/ finished
         step 3: add to top 3 column/ finished
-            3.1: update all of top 3 at the same time
+            3.1: update all of top 3 at the same time/ finished
             3.2: update the border formatting to correspond with updated placements
         """
-        #creates dictionary and searches for names to find players and their amounts of t3
-        place = {}
+        print("Creating dictionary and processing leaderboard data...")
+        places = {
+            "placeF": {},
+            "placeS": {},
+            "placeT": {}
+        }
+
+
         row = 8
-        value = str(sheets.values().get(spreadsheetId=SPREADSHEET_ID, range=f"Races!K{row}").execute().get("values")[0][0])
+        valueF = sheets.values().get(spreadsheetId=SPREADSHEET_ID,
+                                     range=f"Races!K{row}").execute().get("values")[0][0]
+        valueS = sheets.values().get(spreadsheetId=SPREADSHEET_ID,
+                                     range=f"Races!M{row}").execute().get("values")[0][0]
+        valueT = sheets.values().get(spreadsheetId=SPREADSHEET_ID,
+                                     range=f"Races!O{row}").execute().get("values")[0][0]
 
-        while(value != "no data"):
-            if value == "N/A":
-                row += 2
-                value = str(sheets.values().get(spreadsheetId=SPREADSHEET_ID, range=f"Races!K{row}").execute().get("values")[0][0])
-                continue
-            elif value not in place:
-                place[value] = 1
-            else:
-                place[value] += 1
+        while(valueF != "no data"):
+            if valueF == "N/A": pass
+            elif valueF not in places["placeF"]: places["placeF"][valueF] = 1
+            else: places["placeF"][valueF] += 1
 
-            #iterates to the next row
+            if valueS == "N/A": pass
+            elif valueS not in places["placeS"]: places["placeS"][valueS] = 1
+            else: places["placeS"][valueS] += 1
+
+            if valueT == "N/A": pass
+            elif valueT not in places["placeT"]: places["placeT"][valueT] = 1
+            else: places["placeT"][valueT] += 1
+
+            print("Iterating to row " + str(row) + "...")
             row += 2
-            value = str(sheets.values().get(spreadsheetId=SPREADSHEET_ID, range=f"Races!K{row}").execute().get("values")[0][0])
+            valueF = sheets.values().get(spreadsheetId=SPREADSHEET_ID,
+                                         range=f"Races!K{row}").execute().get("values")[0][0]
+            valueS = sheets.values().get(spreadsheetId=SPREADSHEET_ID,
+                                         range=f"Races!M{row}").execute().get("values")[0][0]
+            valueT = sheets.values().get(spreadsheetId=SPREADSHEET_ID,
+                                         range=f"Races!O{row}").execute().get("values")[0][0]
 
-        #sorting dictionary
-        sorted_place = dict(sorted(sorted(place.items(),key=lambda x:x[1])))
+        print("Sorting dictionary...")
+        places["placeF"] = dict(sorted(places["placeF"].items(),key=lambda x:x[1],reverse=True))
+        places["placeS"] = dict(sorted(places["placeS"].items(),key=lambda x:x[1],reverse=True))
+        places["placeT"] = dict(sorted(places["placeT"].items(),key=lambda x:x[1],reverse=True))
+        print("Dictionary successfully sorted in descending order")
 
-        #add sorted dict to top3 sheet
-        row = 7
-        for x,y in sorted_place.items():
-            sheets.values().update(spreadsheetId=SPREADSHEET_ID, range=f"Top 3!B{row}",
-                                   valueInputOption="USER_ENTERED", body={"values": [[x]]}).execute()
-            sheets.values().update(spreadsheetId=SPREADSHEET_ID, range=f"Top 3!D{row}",
-                                   valueInputOption="USER_ENTERED", body={"values": [[y]]}).execute()
-            row += 1
+        print("Updating total Top 3...")
+        col = 0
+        colsK = ("B","E","H")
+        colsV = ("D","G","J")
+        for d in places:
+            row = 7
+            for k in places[d].keys():
+                print(colsK[col])
+                print(k)
+                sheets.values().update(spreadsheetId=SPREADSHEET_ID, range=f"Top 3!{colsK[col]}{row}",
+                                       valueInputOption="USER_ENTERED", body={"values": [[k]]}).execute()
+                row += 1
+            row = 7
+            for v in places[d].values():
+                print(colsV[col])
+                print(v)
+                sheets.values().update(spreadsheetId=SPREADSHEET_ID, range=f"Top 3!{colsV[col]}{row}",
+                                       valueInputOption="USER_ENTERED", body={"values": [[v]]}).execute()
+                row += 1
+            col += 1
 
     except HttpError as error:
         print(error)
@@ -75,7 +109,6 @@ def numberEdit(startingNum, startingRow, endingRow):
                                body={"values": [[f"{count}"]]}).execute()
         count += 1
 """
-#i should have this automate every 24 hrs or something but that would require leaving pc on n shit. idk though
 
 if __name__ == "__main__":
     main()
