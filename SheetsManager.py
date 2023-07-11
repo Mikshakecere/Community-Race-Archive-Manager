@@ -6,15 +6,6 @@ class SheetsManager:
         self.sheets = sheets
         self.ssid = ssid
 
-    """
-    step 1: get dictionary with all top 3 amounts and names/ partly, nonetype case still needs managing but no data can be placeFholder. 
-            also id like to figure out a way to batch get every name instead of individually with while loop and +2 but idk how to do that
-    step 2: sort dictionary/ finished
-    step 3: add to top 3 column/ finished
-        3.1: update all of top 3 at the same time/ finished
-        3.2: update the border formatting to correspond with updated placements/ thats too much effort :D
-        3.3: optimize runtime it sucks
-    """
     def lb_to_t3(self) -> None:
         print("Creating dictionary and processing leaderboard data...")
         places = {
