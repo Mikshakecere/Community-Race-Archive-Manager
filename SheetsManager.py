@@ -88,3 +88,10 @@ class SheetsManager:
             self.sheets.values().update(spreadsheetId=self.ssid, range=f"Leaderboard!B{row}", valueInputOption="USER_ENTERED",
                                    body={"values": [[f"{count}"]]}).execute()
             count += 1
+
+    # check where the last race name before none type is and then take both name and race num
+    # go to the race ranking sheet and see where the race needs to be updated to
+    # only take races from last updated on race ranking to last updated on race lb
+    # f"Race #{race_number}: \"{race_name}\" by {race_creator}"
+    def lb_to_ranking(self) -> None:
+        print("ur gay if u see this")

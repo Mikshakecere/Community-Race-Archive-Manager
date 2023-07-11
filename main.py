@@ -34,10 +34,6 @@ def main():
         sm.lb_to_t3()
         #sm.numberEdit()
 
-        #check where the last race name before none type is and then take both name and race num
-        #go to the race ranking sheet and see where the race needs to be updated to
-        #only take races from last updated on race ranking to last updated on race lb
-        #f"Race #{race_number}: \"{race_name}\" by {race_creator}"
 
         end = time.time()
 
