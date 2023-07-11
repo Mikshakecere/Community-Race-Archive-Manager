@@ -94,4 +94,4 @@ class SheetsManager:
     # only take races from last updated on race ranking to last updated on race lb
     # f"Race #{race_number}: \"{race_name}\" by {race_creator}"
     def lb_to_ranking(self) -> None:
-        print("ur gay if u see this")
+        print("ur very nice if u see this")
