@@ -29,12 +29,13 @@ def main():
         sheets = service.spreadsheets()
         start = time.time()
         sm = SheetsManager(sheets,SPREADSHEET_ID)
-        
+
         #updates top 3 sheet using data from leaderboard
         sm.lb_to_t3()
         #sm.numberEdit()
-        
+
         end = time.time()
+
         print("Program successful! Runtime:", (end - start) * 10 ** 3, "ms")
 
     except HttpError as error:
