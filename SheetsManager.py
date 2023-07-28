@@ -41,7 +41,7 @@ class SheetsManager:
                                                       range=f"Top 3!{chr(i)}{row}").execute().get("values")[0][0]
                     amount = self.sheets.values().get(spreadsheetId=self.ssid,
                                                       range=f"Top 3!{chr(i + 2)}{row}").execute().get("values")[0][0]
-                    places[f"place{letters[index]}"][name] = amount
+                    places[f"place{letters[index]}"][name] = int(amount)
                     row += 1
                 except TypeError:
                     index += 1
@@ -88,9 +88,6 @@ class SheetsManager:
         print("Updating total Top 3...")
         self.top_3_updater(places, 10, latest)
 
-    """
-    dict_update appears to be unresponsive with updating dict using new data, pls fix
-    """
     def dict_update(self, value, places, place) -> dict:
         if value == "N/A":
             pass
@@ -98,7 +95,6 @@ class SheetsManager:
             places[f"place{place}"][value] = 1
         else:
             places[f"place{place}"][value] += 1
-            print(value + str(places[f"place{place}"][value]))
         return places
 
     def top_3_updater(self, places, row,latest) -> None:
