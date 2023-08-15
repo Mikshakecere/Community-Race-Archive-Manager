@@ -32,7 +32,7 @@ def main():
 
         #updates top 3 sheet using data from leaderboard
         sm.lb_to_t3()
-        #sm.numberEdit()
+        #sm.row_add()
 
         end = time.time()
 
