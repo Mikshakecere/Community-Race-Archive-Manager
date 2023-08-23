@@ -1,7 +1,5 @@
 import multiprocessing
 import time
-#i need to learn how to use threading
-
 class SheetsManager:
     def __init__(self, sheets, ssid):
         self.sheets = sheets
@@ -12,85 +10,73 @@ class SheetsManager:
 
         :return:
         """
-        print("Checking for newer data")
+        print("Checking for newer data...")
+        start = time.time()
         latest = self.sheets.values().get(spreadsheetId=self.ssid,
                                           range=f"Top 3!B4").execute().get("values")[0][0]
-        latest = int(latest[-1:])+1
+        latest = int(latest[20:])+1
         row = 2*(latest-1)+8
         try:
             self.sheets.values().get(spreadsheetId=self.ssid,
                                      range=f"Leaderboard!K{row}").execute().get("values")[0][0]
         except TypeError:
-            print(latest)
-            print("There is no new data to be processed. Terminating lb_to_t3 method")
+            print("Row",str(latest),"\nThere is no new data to be processed. Terminating lb_to_t3 method")
             return None
-
-        print("Creating dictionary and processing leaderboard data...")
+        print("Creating dictionary and processing leaderboard data...", end=" ")
         places = {
-            "placeF": {},
-            "placeS": {},
-            "placeT": {}
+            "placed0": {},
+            "placed1": {},
+            "placed2": {}
         }
+        end = time.time()
+        print("Prep runtime:", (end - start) * 10 ** 3, "ms")
 
-        print("Looping through columns")
-
-        #use a batch get instead
-        """thing = self.sheets.values().batchGet(spreadsheetId=self.ssid,
-                                              ranges=f"Top3!B10:C15").execute()
-        print(thing)"""
-
+        start = time.time()
+        print("Looping through columns...", end=" ")
+        if latest != 1:
+            for i in range(3):
+                place = self.sheets.values().batchGet(spreadsheetId=self.ssid,
+                                                      ranges=[f"Top 3!{chr(66+(i*3))}10:{chr(66+(i*3))}",f"Top 3!{chr(68+(i*3))}10:{chr(68+(i*3))}"], majorDimension="COLUMNS").execute().get("valueRanges")
+                places[f"placed{i}"] = self.lists_to_dict(place[0].get("values")[0],place[1].get("values")[0])
         row = 2*(latest-1)+8
-        valueF = self.sheets.values().get(spreadsheetId=self.ssid,
-                                          range=f"Leaderboard!K{row}").execute().get("values")[0][0]
-        valueS = self.sheets.values().get(spreadsheetId=self.ssid,
-                                          range=f"Leaderboard!M{row}").execute().get("values")[0][0]
-        valueT = self.sheets.values().get(spreadsheetId=self.ssid,
-                                          range=f"Leaderboard!O{row}").execute().get("values")[0][0]
-
         while (True):
-            #try to put valueFST into values list and have places dicts be updated
-            places["placeF"] = self.dict_update(valueF, places, "F")
-            places["placeS"] = self.dict_update(valueS, places, "S")
-            places["placeT"] = self.dict_update(valueT, places, "T")
-
             try:
-                row += 2
-                valueF = self.sheets.values().get(spreadsheetId=self.ssid,
-                                                  range=f"Leaderboard!K{row}").execute().get("values")[0][0]
-                valueS = self.sheets.values().get(spreadsheetId=self.ssid,
-                                                  range=f"Leaderboard!M{row}").execute().get("values")[0][0]
-                valueT = self.sheets.values().get(spreadsheetId=self.ssid,
-                                                  range=f"Leaderboard!O{row}").execute().get("values")[0][0]
+                value = self.sheets.values().batchGet(spreadsheetId=self.ssid,
+                                                      ranges=[f"Leaderboard!K{row}", f"Leaderboard!M{row}", f"Leaderboard!O{row}"]).execute().get("valueRanges")
+                values = []
+                for i in range(3):
+                    values.append(value[i].get("values")[0][0])
             except TypeError:
                 latest = self.sheets.values().get(spreadsheetId=self.ssid,
                                                   range=f"Leaderboard!B{row-2}").execute().get("values")[0][0]
                 break
+            places = self.dict_update(values, places)
+            row += 2
+        end = time.time()
+        print("Collection runtime:", (end - start) * 10 ** 3, "ms")
 
-        print("Sorting dictionary...")
+        start = time.time()
+        print("Sorting dictionary...", end=" ")
         for place in places:
             places[place] = dict(sorted(places[place].items(), key=lambda x:x[1], reverse=True))
+        end = time.time()
+        print("Sorter runtime:", (end - start) * 10 ** 3, "ms")
 
-        for place in places.items():
-            print(place)
-
-        print("Updating total Top 3...")
-
-        u1 = multiprocessing.Process(target=self.top_3_updater,args=(places["placeF"],66))
-        u2 = multiprocessing.Process(target=self.top_3_updater,args=(places["placeS"],69))
-        u3 = multiprocessing.Process(target=self.top_3_updater,args=(places["placeT"],72))
-
-        u1.start()
-        u2.start()
-        u3.start()
-
-        u1.join()
-        u2.join()
-        u3.join()
-
+        start = time.time()
+        print("Updating total Top 3...", end=" ")
+        processes = []
+        for i in range(3):
+            process = multiprocessing.Process(target=self.top_3_updater,args=(places[f"placed{i}"],66+(i*3)))
+            process.start()
+            processes.append(process)
         self.sheets.values().update(spreadsheetId=self.ssid, range=f"Top 3!B4", valueInputOption="USER_ENTERED",
                                     body={"values": [[f"Last Updated: Race #{latest}"]]}).execute()
-
-    def dict_update(self, value, places, place) -> dict:
+        end = time.time()
+        print("Updater runtime:", (end - start) * 10 ** 3, "ms")
+    def lists_to_dict(self, list1, list2) -> dict:
+        list2 = [eval(i) for i in list2]
+        return {list1[i]: list2[i] for i in range(len(list1))}
+    def dict_update(self, values, places) -> dict:
         """
         dict_update
 
@@ -98,21 +84,21 @@ class SheetsManager:
         :param places:
         :return: dictionary places[placex]
         """
-        if value == "N/A":
-            pass
-        elif value not in places[f"place{place}"]:
-            places[f"place{place}"][value] = 1
-        else:
-            places[f"place{place}"][value] += 1
-        return places[f"place{place}"]
+        for i in range(3):
+            if values[i] == "N/A":
+                pass
+            elif values[i] not in places[f"placed{i}"]:
+                places[f"placed{i}"][values[i]] = 1
+            else:
+                places[f"placed{i}"][values[i]] += 1
+        return places
 
     def top_3_updater(self, place, col) -> None:
         """
         top_3_updater will update the sheet "Top 3" with the new information in the dictionary 'places'
 
         :param place: dictionary of dictionaries to have information accessed and used to update the sheet "Top 3"
-        :param row: value that remains unchanged in order to be able to move on to the next column
-        :param latest: value to update the last updated text using the latest row with info
+        :param col: value that remains unchanged in order to be able to move on to the next column
         """
         row_iter = 10
         for k in place.keys():
@@ -126,16 +112,15 @@ class SheetsManager:
             row_iter += 1
 
 
-    def row_add(self, starting_num, starting_row, ending_row) -> None:
+    def row_add(self, count, starting_row, ending_row) -> None:
         """
         row_add
 
-        :param starting_num:
+        :param count:
         :param starting_row:
         :param ending_row:
         :return:
         """
-        count = starting_num
         for row in range(starting_row, ending_row - 1, 2):
             self.sheets.values().update(spreadsheetId=self.ssid, range=f"Leaderboard!B{row}", valueInputOption="USER_ENTERED",
                                         body={"values": [[f"{count}"]]}).execute()

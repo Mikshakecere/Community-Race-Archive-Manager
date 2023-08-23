@@ -27,15 +27,17 @@ def main():
     try:
         service = build("sheets", "v4", credentials=credentials)
         sheets = service.spreadsheets()
-        start = time.time()
         sm = SheetsManager(sheets,SPREADSHEET_ID)
 
+        #add option to redo top 3 from scratch in case i fucked up rankings
         #updates top 3 sheet using data from leaderboard
+
+        start = time.time()
+
         sm.lb_to_t3()
         #sm.row_add()
 
         end = time.time()
-
         print("Program successful! Runtime:", (end - start) * 10 ** 3, "ms")
 
     except HttpError as error:
