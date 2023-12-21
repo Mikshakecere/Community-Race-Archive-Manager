@@ -31,11 +31,19 @@ def main():
 
         #add option to redo top 3 from scratch in case i fucked up rankings
         #updates top 3 sheet using data from leaderboard
+        action = input("Available commands: 'top3', 'resett3', 'rowadd'")
 
         start = time.time()
-
-        sm.lb_to_t3()
-        #sm.row_add()
+        if action == 'top3':
+            sm.lb_to_t3()
+        elif action == 'resett3':
+            #i still need to implement this shit ahaahhahahahhaha
+            sm.lb_to_t3()
+        elif action == 'rowadd':
+            sm.row_add()
+            #sm.row_add(5,16,107)
+        else:
+            print("call the function thing again")
 
         end = time.time()
         print("Program successful! Runtime:", (end - start) * 10 ** 3, "ms")

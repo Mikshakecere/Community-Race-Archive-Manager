@@ -36,7 +36,8 @@ class SheetsManager:
         if latest != 1:
             for i in range(3):
                 place = self.sheets.values().batchGet(spreadsheetId=self.ssid,
-                                                      ranges=[f"Top 3!{chr(66+(i*3))}10:{chr(66+(i*3))}",f"Top 3!{chr(68+(i*3))}10:{chr(68+(i*3))}"], majorDimension="COLUMNS").execute().get("valueRanges")
+                                                      ranges=[f"Top 3!{chr(66+(i*3))}10:{chr(66+(i*3))}",f"Top 3!{chr(68+(i*3))}10:{chr(68+(i*3))}"],
+                                                      majorDimension="COLUMNS").execute().get("valueRanges")
                 places[f"placed{i}"] = self.lists_to_dict(place[0].get("values")[0],place[1].get("values")[0])
         row = 2*(latest-1)+8
         while (True):
@@ -73,16 +74,18 @@ class SheetsManager:
                                     body={"values": [[f"Last Updated: Race #{latest}"]]}).execute()
         end = time.time()
         print("Updater runtime:", (end - start) * 10 ** 3, "ms")
+
     def lists_to_dict(self, list1, list2) -> dict:
         list2 = [eval(i) for i in list2]
         return {list1[i]: list2[i] for i in range(len(list1))}
+
     def dict_update(self, values, places) -> dict:
         """
-        dict_update
+        dict_update does this
 
-        :param value: value will typically be
-        :param places:
-        :return: dictionary places[placex]
+        :param values: values is a list of values
+        :param places: places is a list of places
+        :return: dictionary places
         """
         for i in range(3):
             if values[i] == "N/A":
@@ -96,6 +99,9 @@ class SheetsManager:
     def top_3_updater(self, place, col) -> None:
         """
         top_3_updater will update the sheet "Top 3" with the new information in the dictionary 'places'
+
+        honestly i could try and modify the update function to check if a name is already there and if it is just add
+        but i dont think that could scale very well anyway and its fine
 
         :param place: dictionary of dictionaries to have information accessed and used to update the sheet "Top 3"
         :param col: value that remains unchanged in order to be able to move on to the next column
@@ -116,15 +122,21 @@ class SheetsManager:
         """
         row_add
 
-        :param count:
         :param starting_row:
         :param ending_row:
         :return:
         """
-        for row in range(starting_row, ending_row - 1, 2):
-            self.sheets.values().update(spreadsheetId=self.ssid, range=f"Leaderboard!B{row}", valueInputOption="USER_ENTERED",
+
+        while starting_row < ending_row:
+            self.sheets.values().update(spreadsheetId=self.ssid,
+                                        range=f"Leaderboard!B{starting_row}",
+                                        valueInputOption="USER_ENTERED",
                                         body={"values": [[f"{count}"]]}).execute()
+            starting_row += 2
             count += 1
+
+    def reset_t3(self) -> None:
+        print("")
 
     """check where the last race name before none type is and then take both name and race num
     go to the race ranking sheet and see where the race needs to be updated to
@@ -133,12 +145,15 @@ class SheetsManager:
     def lb_to_ranking(self) -> None:
         print("")
 
-    """im pretty sure you might be able to literally just call functions by writing them in with the bot so :D
-    definitely attempt to use transpose and sort functions in order to
-
-    you would probably have to find out how to do letter iteration first
-
+    """
     after that, you would probably transpose all of the data onto sorted rankings and then use sort functions
-    that will sort by median and average"""
+    that will sort by median and average
+    ok im 99% sure the google sort function is absolutely fucking useless for me thanks
+    """
     def sort_ranking(self) -> None:
         print("")
+
+    def auto_format(self, num, col) -> None:
+        raceTitle = "balls"
+        raceHost = "balls"
+        print(f"Race #{num}: \"{raceTitle}\" by {raceHost}")
