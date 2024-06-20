@@ -39,9 +39,6 @@ def main():
         elif action == 'resett3':
             #i still need to implement this shit ahaahhahahahhaha
             sm.lb_to_t3()
-        elif action == 'rowadd':
-            sm.row_add()
-            #sm.row_add(5,16,107)
         elif action == 'rr':
             print(sm.auto_format())
         else:

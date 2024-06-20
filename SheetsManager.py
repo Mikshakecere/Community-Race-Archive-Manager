@@ -121,24 +121,6 @@ class SheetsManager:
                                         body={"values": [[v]]}).execute()
             row_iter += 1
 
-
-    def row_add(self, count, starting_row, ending_row) -> None:
-        """
-        row_add
-
-        :param starting_row:
-        :param ending_row:
-        :return:
-        """
-
-        while starting_row < ending_row:
-            self.sheets.values().update(spreadsheetId=self.ssid,
-                                        range=f"Leaderboard!B{starting_row}",
-                                        valueInputOption="USER_ENTERED",
-                                        body={"values": [[f"{count}"]]}).execute()
-            starting_row += 2
-            count += 1
-
     def reset_t3(self) -> None:
         print("")
 
